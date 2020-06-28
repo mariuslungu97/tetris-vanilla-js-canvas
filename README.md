@@ -1,6 +1,6 @@
-# Vanilla Javascript and SASS Boilerplate using Parcel  
+# Tetris In The Browser  
 
-If you want to add SCSS/SASS or JS files, go to `src/` and add those files there. Also make sure to import them in `app.js`.  
+Tetris using the Canvas API, Javascript ES6+ and SASS. 
 
 # Usage  
 
