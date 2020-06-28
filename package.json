@@ -1,12 +1,12 @@
 {
-  "name": "tetris-vanilla-js-canvas",
+  "name": "tetris-vanilla-js",
   "version": "1.0.0",
   "description": "",
   "main": "index.js",
   "scripts": {
     "dev": "npm run clean && parcel public/index.html --out-dir development -p 3000",
     "build": "parcel build public/index.html --out-dir dist --public-url ./",
-    "clean" : "rimraf ./development && rimraf ./.cache"
+    "clean": "rimraf ./development && rimraf ./.cache"
   },
   "keywords": [],
   "author": "Marius Lungu",
