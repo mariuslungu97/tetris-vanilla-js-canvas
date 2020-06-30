@@ -40,11 +40,27 @@ class Player {
 
     update(direction) {
         
-        if (direction === "left") this.posX = this.posX - this.dx;
-        else if (direction === "right") this.posX = this.posX + this.dx;
-        else this.posX = this.posX;
+        //use temporary positions to check for collisions
+        let tempPosX, tempPosY;
 
-        this.posY = this.posY + this.dy;
+        if (direction === "left") tempPosX = this.posX - this.dx;
+        else if (direction === "right") tempPosX = this.posX + this.dx;
+        else tempPosX = this.posX;
+
+        tempPosY = this.posY + this.dy;
+        
+        //check for collision
+        const [updateDirectionX, updateDirectionY] = this.board.checkForCollisions(this.shape, tempPosX, tempPosY);
+        
+        //update direction
+        if (!updateDirectionY) return updateDirectionY;
+        else {
+            if (updateDirectionX) {
+                this.posX = tempPosX;
+            }
+            this.posY = tempPosY;
+            return true;
+        };
     }
 };
 

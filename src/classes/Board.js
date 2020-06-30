@@ -15,7 +15,7 @@ class Board {
         this.boardCoordsY = [this.posY, this.posY + m*this.blockSizeY + this.borderSize];
 
         this.boardBlocks = [];
-        // this.collidedBlocks = [];
+        this.collidedTetros = [];
 
         for (let i = 0; i < m; i++) {
             for(let j = 0; j < n; j++) {
@@ -43,6 +43,78 @@ class Board {
 
         };
     }
+
+    drawCollidedTetros(ctx) {
+        for (let i = 0; i < this.collidedTetros.length; i++) {
+            this.collidedTetros[i].draw(ctx);
+        };
+    }
+
+    addTetroToCollided = (tetro) => this.collidedTetros.push(tetro);
+
+    doBlocksCollide(firstBlockCoords, secondBlockCoords) {
+        
+        let doCollideOnXAxis = false;
+        let doCollideOnYAxis = false;
+        
+        if (firstBlockCoords[0] === secondBlockCoords[0] && firstBlockCoords[0] + this.blockSizeX === secondBlockCoords[0] + this.blockSizeX) {
+            doCollideOnXAxis = true;
+        };
+
+        if (firstBlockCoords[1] === secondBlockCoords[1] && firstBlockCoords[1] + this.blockSizeY === secondBlockCoords[1] + this.blockSizeY) {
+            doCollideOnYAxis = true;
+        };
+
+        return doCollideOnXAxis && doCollideOnYAxis;
+        
+    }
+
+    checkForCollisions(shape, posX, posY) {
+
+        let updateDirectionX = true;
+        let updateDirectionY = true;
+
+        for (let i = 0; i < shape.length; i++) {
+
+            if (shape[i] === "X") {
+
+                const [blockPosX, blockPosY] = this.getBlockPosition(i, posX, posY);
+
+                //check for collisions against board walls (left, right, ceiling)
+                
+                if (blockPosX < this.boardCoordsX[0] || blockPosX + this.blockSizeX + this.borderSize > this.boardCoordsX[1]) updateDirectionX = false;
+
+                if (blockPosY + this.blockSizeY + this.borderSize > this.boardCoordsY[1]) return [updateDirectionX, updateDirectionY = false];
+
+                //check for collisions against collided blocks
+                for (let j = 0; j < this.collidedTetros.length; j++) {
+
+                    const collidedTetro = this.collidedTetros[j];
+
+                    for (let k = 0; k < collidedTetro.shape.length; k++) {
+
+                        if (collidedTetro.shape[k] === "X") {
+                            
+                            const collidedBlockCoords = this.getBlockPosition(k, collidedTetro.posX, collidedTetro.posY);
+
+                            const doCollide = this.doBlocksCollide([blockPosX, blockPosY], collidedBlockCoords);
+                            
+                            if (doCollide) {
+                                updateDirectionX = false;
+                                updateDirectionY = false;
+                                return [updateDirectionX, updateDirectionY];
+                            };
+    
+                        };
+                        
+                    };
+
+                };
+
+            };
+        }
+        return [updateDirectionX, updateDirectionY];
+    };
 
     drawBlock(ctx, borderStyle, blockStyle, posX, posY) {
 

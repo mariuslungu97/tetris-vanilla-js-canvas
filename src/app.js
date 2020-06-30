@@ -46,8 +46,10 @@ const draw = () => {
 
     //draw board
     board.drawBoard(ctx);
-    //draw collided blocks
 
+    //draw collided blocks
+    board.drawCollidedTetros(ctx);
+    
     //draw player
     player.draw(ctx);
 };
@@ -97,7 +99,19 @@ const init = () => {
     player = new Player(shape, playerPosX, playerPosY, dx, dy, board);
 
     //set interval to update player position every 500ms
-    const playerUpdateInterval = setInterval(() => player.update("none"), 500);
+    const playerUpdateInterval = setInterval(() => {
+        
+        const hasPlayerUpdated = player.update("none");
+
+        if (!hasPlayerUpdated) {
+            board.addTetroToCollided(player);
+            
+            //create new player instance
+            const shape = SHAPES[Math.floor(Math.random() * SHAPES.length)];
+            player = new Player(shape, playerPosX, playerPosY, dx, dy, board);
+        }
+
+    }, 500);
 
     //set event listeners
     window.addEventListener("keydown", (e) => {
