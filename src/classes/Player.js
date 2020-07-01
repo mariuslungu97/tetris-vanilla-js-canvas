@@ -38,6 +38,79 @@ class Player {
         };
     }
 
+    rotate() {
+
+        let angle = 90;
+        let rotated = false;
+        let rotatedTetro;
+
+        while (!rotated && angle !== 360) {
+
+            rotatedTetro = this.rotateWithAngle(angle);
+
+            //check for collisions 
+            const [updatePosX, updatePosY] = this.board.checkForCollisions(rotatedTetro, this.posX, this.posY);
+
+            if (updatePosX && updatePosY) rotated = true;
+            else angle += 90;
+
+        };  
+
+        if (!rotated) return false;
+        else {
+            this.shape = rotatedTetro;
+            return true;
+        };
+
+    }
+
+    rotateWithAngle(angle) {
+
+        console.log("[rotateWithAngle] angle : ", angle);
+
+        let tempShape = new String(this.shape).split('');
+
+        console.log("[rotateWithAngle] tempShape : ", tempShape);
+
+        let result = new Array(tempShape.length);
+
+        console.log("[rotateWithAngle] result : ", result);
+
+        for (let i = 0; i < Math.floor(angle / 90); i++) {
+
+            let row = 0;
+            let col = 0;
+
+            for (let j = 0; j < tempShape.length; j++) {
+                
+                let rotatedCol = (4 - 1) - row;
+                let rotatedRow = col;
+
+                result[rotatedRow * 4 + rotatedCol] = tempShape[j];
+                console.log(`[rotateWithAngle] result[${rotatedRow * 4 + rotatedCol}] = ${tempShape[i]}`);
+
+                if ((j+1) % 4 === 0) {
+                    row++;
+                    col = 0;
+                } else {
+                    col++;
+                }
+
+                console.log(`[rotateWithAngle] row : ${row}; col : ${col}`);
+
+            };
+
+            console.log("[rotateWithAngle] result : ", result);
+
+            tempShape = [...result];
+
+            console.log("[rotateWithAngle] tempShape : ", tempShape);
+
+        };
+
+        return result.join("");
+    }
+ 
     update(direction) {
         
         //use temporary positions to check for collisions

@@ -118,6 +118,7 @@ const init = () => {
         
         if (e.keyCode === 37) player.update("left");
         else if (e.keyCode === 39) player.update("right");
+        else if (e.keyCode === 38) player.rotate();
 
     });
 
