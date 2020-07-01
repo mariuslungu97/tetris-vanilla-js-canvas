@@ -106,6 +106,10 @@ const init = () => {
         if (!hasPlayerUpdated) {
             board.addTetroToCollided(player);
             
+            //check for completed rows
+            const isRowCompleted = board.checkForCompletedRows();
+            console.log(isRowCompleted);
+
             //create new player instance
             const shape = SHAPES[Math.floor(Math.random() * SHAPES.length)];
             player = new Player(shape, playerPosX, playerPosY, dx, dy, board);
