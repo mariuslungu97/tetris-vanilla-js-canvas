@@ -47,9 +47,6 @@ const draw = () => {
     //draw board
     board.drawBoard(ctx);
 
-    //draw collided blocks
-    board.drawCollidedTetros(ctx);
-    
     //draw player
     player.draw(ctx);
 };
@@ -105,17 +102,17 @@ const init = () => {
 
         if (!hasPlayerUpdated) {
             board.addTetroToCollided(player);
-            
             //check for completed rows
-            const isRowCompleted = board.checkForCompletedRows();
-            console.log(isRowCompleted);
+            const completedRows = board.checkForCompletedRows();
+            //update board blocks
+            board.updateBoardBlocks(completedRows);
 
             //create new player instance
             const shape = SHAPES[Math.floor(Math.random() * SHAPES.length)];
             player = new Player(shape, playerPosX, playerPosY, dx, dy, board);
         }
 
-    }, 500);
+    }, 300);
 
     //set event listeners
     window.addEventListener("keydown", (e) => {

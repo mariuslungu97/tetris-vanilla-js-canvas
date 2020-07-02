@@ -41,12 +41,13 @@ class Board {
     };
 
     getBlockIndex(i, posX, posY) {
+        
         const [blockPosX, blockPosY] = this.getBlockPosition(i, posX, posY);
 
-        const row = Math.floor(blockPosY / this.blockSizeY);
-        const col = Math.floor(blockPosX / this.blockSizeX);
-
-        return (row - 1) * this.n + col;
+        const row = Math.floor((blockPosY - this.posY) / this.blockSizeY);
+        const col = Math.floor((blockPosX - this.posX) / this.blockSizeX);
+        
+        return row  * this.n + col;
     };
 
     markBlockAsFilled(index) {
@@ -57,21 +58,80 @@ class Board {
     };
 
     drawBoard(ctx) {
-          
+        
+        const emptyBorderStyle = "rgba(219,219,219,.4)";
+        const emptyBlockStyle = "#6d6d6e";
+
+        const collidedBorderStyle = "rgba(0,44,133,1)";
+        const collidedBlockStyle = "#023eb5";
+
         //iterate through boardBlocks and render each block and its border, based on its established position
         for(let i = 0; i < this.boardBlocks.length; i++) {
             
             let {posX, posY} = this.boardBlocks[i];
+            const isFilled = this.boardBlocks[i].filled;
             
-            const borderStyle = "rgba(219,219,219,.4)";
-            const blockStyle = "#6d6d6e";
-
-            this.drawBlock(ctx, borderStyle, blockStyle, posX, posY);
+            if (isFilled) {
+                this.drawBlock(ctx, collidedBorderStyle, collidedBlockStyle, posX, posY);
+            } else {
+                this.drawBlock(ctx, emptyBorderStyle, emptyBlockStyle, posX, posY);
+            };
 
         };
     }
 
+    renderBoardInConsole(board) {
+
+        let line = "";
+
+        for (let i = 0; i < this.m; i++) {
+            
+            for (let j = 0; j < this.n; j++) {
+                line += board[i * this.n + j].filled ? "X" : "-";
+            };
+
+            line += "\n";
+        };
+        
+        console.log(line);
+    };
+
+
+    updateBoardBlocks(completedRows) {
+
+        if (completedRows.length === 0) return;
+        
+        for (let i = 0; i < completedRows.length; i++) {
+
+            //create deep copy
+            let newBoardBlocks = JSON.parse(JSON.stringify(this.boardBlocks));
+
+            const completedRowIndex = completedRows[i];
+
+            let row = 0;
+            let col = 0;
+
+            for (let j = 0; j < completedRowIndex; j++) {
+
+                newBoardBlocks[(row + 1) * this.n + col].filled = this.boardBlocks[row * this.n + col].filled;
+
+                //update row and col
+                if ((j + 1) % this.n === 0) {
+                    row++;
+                    col = 0;
+                } else {
+                    col++;
+                }
+            };
+
+            this.boardBlocks = newBoardBlocks;
+
+        };
+    };
+
     checkForCompletedRows() {
+
+        const completedRows = [];
 
         for (let i = 0; i < this.boardBlocks.length; i += this.n) {
 
@@ -82,16 +142,10 @@ class Board {
                 if (block.filled === true) count++;
             });
 
-            if (count === this.n) return true;
+            if (count === this.n) completedRows.push(i);
         };
-        return false;
+        return completedRows;
     };
-
-    drawCollidedTetros(ctx) {
-        for (let i = 0; i < this.collidedTetros.length; i++) {
-            this.collidedTetros[i].draw(ctx);
-        };
-    }
 
     addTetroToCollided = (tetro) => {
         this.markTetroAsFilled(tetro);
@@ -132,33 +186,17 @@ class Board {
 
                 if (blockPosY + this.blockSizeY + this.borderSize > this.boardCoordsY[1]) return [updateDirectionX, updateDirectionY = false];
 
-                //check for collisions against collided blocks
-                for (let j = 0; j < this.collidedTetros.length; j++) {
+                //get the block index relative to the board, and check if that block is already filled
+                const blockIndex = this.getBlockIndex(i, posX, posY);
 
-                    const collidedTetro = this.collidedTetros[j];
-
-                    for (let k = 0; k < collidedTetro.shape.length; k++) {
-
-                        if (collidedTetro.shape[k] === "X") {
-                            
-                            const collidedBlockCoords = this.getBlockPosition(k, collidedTetro.posX, collidedTetro.posY);
-
-                            const doCollide = this.doBlocksCollide([blockPosX, blockPosY], collidedBlockCoords);
-                            
-                            if (doCollide) {
-                                updateDirectionX = false;
-                                updateDirectionY = false;
-                                return [updateDirectionX, updateDirectionY];
-                            };
-    
-                        };
-                        
-                    };
-
+                if (this.boardBlocks[blockIndex].filled) {
+                    updateDirectionX = false;
+                    updateDirectionY = false;
+                    return [updateDirectionX, updateDirectionY];
                 };
-
             };
-        }
+        };
+
         return [updateDirectionX, updateDirectionY];
     };
 
@@ -166,7 +204,7 @@ class Board {
 
          //draw border
          ctx.fillStyle = borderStyle;
-         ctx.fillRect(posX, posY, this.blockSizeX+this.borderSize, this.blockSizeY+this.borderSize);
+         ctx.fillRect(posX, posY, this.blockSizeX + this.borderSize, this.blockSizeY + this.borderSize);
          
          //draw block
          ctx.fillStyle = blockStyle;
@@ -175,7 +213,8 @@ class Board {
     };
 
     getBlockPosition(i, posX, posY) {
-        
+        //get each block position, based on its index and its belonging tetro posX and posY
+        //assumes that all tetros have a 4x4 structure
         const row = Math.floor(i / 4);
         const col = i % 4;
 
