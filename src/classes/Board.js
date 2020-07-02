@@ -15,7 +15,9 @@ class Board {
         this.boardCoordsY = [this.posY, this.posY + m*this.blockSizeY + this.borderSize];
 
         this.boardBlocks = [];
-        this.collidedTetros = [];
+
+        this.score = 0;
+        this.scoredTetris = false;
 
         for (let i = 0; i < m; i++) {
             for(let j = 0; j < n; j++) {
@@ -59,13 +61,25 @@ class Board {
 
     drawBoard(ctx) {
         
-        const emptyBorderStyle = "rgba(219,219,219,.4)";
+        const emptyBorderStyle = "rgba(184,184,184,1)";
         const emptyBlockStyle = "#6d6d6e";
 
         const collidedBorderStyle = "rgba(0,44,133,1)";
         const collidedBlockStyle = "#023eb5";
 
-        //iterate through boardBlocks and render each block and its border, based on its established position
+        //render empty blocks
+        for(let i = 0; i < this.boardBlocks.length; i++) {
+            
+            let {posX, posY} = this.boardBlocks[i];
+            const isFilled = this.boardBlocks[i].filled;
+            
+            if (!isFilled) {
+                this.drawBlock(ctx, emptyBorderStyle, emptyBlockStyle, posX, posY);
+            };
+
+        };
+
+        //render filled blocks
         for(let i = 0; i < this.boardBlocks.length; i++) {
             
             let {posX, posY} = this.boardBlocks[i];
@@ -73,11 +87,10 @@ class Board {
             
             if (isFilled) {
                 this.drawBlock(ctx, collidedBorderStyle, collidedBlockStyle, posX, posY);
-            } else {
-                this.drawBlock(ctx, emptyBorderStyle, emptyBlockStyle, posX, posY);
             };
 
         };
+        
     }
 
     renderBoardInConsole(board) {
@@ -147,27 +160,20 @@ class Board {
         return completedRows;
     };
 
-    addTetroToCollided = (tetro) => {
-        this.markTetroAsFilled(tetro);
-        this.collidedTetros.push(tetro);
+    updateScore(lineClears) {
+
+        const nrTetris = Math.floor(lineClears / 4);
+        const rest = lineClears % 4;
+
+        this.score += this.scoredTetris ? 1200 * nrTetris : 800 * nrTetris;
+        this.score += rest * 100;
+        this.scoredTetris = nrTetris > 0 ? true : false;
+
     };
 
-    doBlocksCollide(firstBlockCoords, secondBlockCoords) {
-        
-        let doCollideOnXAxis = false;
-        let doCollideOnYAxis = false;
-        
-        if (firstBlockCoords[0] === secondBlockCoords[0] && firstBlockCoords[0] + this.blockSizeX === secondBlockCoords[0] + this.blockSizeX) {
-            doCollideOnXAxis = true;
-        };
-
-        if (firstBlockCoords[1] === secondBlockCoords[1] && firstBlockCoords[1] + this.blockSizeY === secondBlockCoords[1] + this.blockSizeY) {
-            doCollideOnYAxis = true;
-        };
-
-        return doCollideOnXAxis && doCollideOnYAxis;
-        
-    }
+    addTetroToCollided = (tetro) => {
+        this.markTetroAsFilled(tetro);
+    };
 
     checkForCollisions(shape, posX, posY) {
 
@@ -208,7 +214,7 @@ class Board {
          
          //draw block
          ctx.fillStyle = blockStyle;
-         ctx.fillRect(posX+this.borderSize, posY+this.borderSize, this.blockSizeX-this.borderSize, this.blockSizeY-this.borderSize);
+         ctx.fillRect(posX+this.borderSize, posY+this.borderSize, this.blockSizeX - this.borderSize, this.blockSizeY - this.borderSize);
          
     };
 

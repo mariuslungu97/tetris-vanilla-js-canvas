@@ -35,6 +35,50 @@ const dy = BLOCK_SIZE_Y;
 
 const SHAPES = ["-----X--XXX-----", "-X---X---X---X--", "-----XX--XX-----", "-----XX---XX----", "-----XX-XX------", "-----X---XXX----", "------X-XXX-----"];
 
+let nextShapes;
+let shapesToSee = 3;
+
+const drawNextShapes = () => {
+
+    //render text
+    const textPosX = board.boardCoordsX[1] + (canvasWidth -  board.boardCoordsX[1]) / 2;
+    const textPosY = board.boardCoordsY[0] + 30;
+
+    ctx.font = "36px sans-serif";
+    ctx.fillStyle = "#ffffff";
+
+    ctx.fillText("NEXT:", textPosX, textPosY);
+
+    //render shapes
+    let shapePosX = textPosX;
+    let shapePosY = textPosY + 25;
+
+    for (let i = 0; i < nextShapes.length; i++) {
+
+        const shape = SHAPES[nextShapes[i]];
+        const nextPlayer = new Player(shape, shapePosX, shapePosY, dx, dy, board);
+        nextPlayer.draw(ctx);
+
+        shapePosY += 165;
+    };
+
+};
+
+const drawScore = () => {
+    //render text
+    const textPosX = (canvasWidth -  board.boardCoordsX[1]) / 2;
+    const textPosY = board.boardCoordsY[0] + 30;
+
+    ctx.font = "36px sans-serif";
+    ctx.fillStyle = "#ffffff";
+
+    ctx.fillText("SCORE:", textPosX, textPosY);
+    
+    ctx.textAlign = "center";
+    ctx.fillText(`${board.score}`, textPosX, textPosY + 50);
+
+};
+
 const draw = () => {
 
     //clear screen
@@ -49,6 +93,12 @@ const draw = () => {
 
     //draw player
     player.draw(ctx);
+
+    //draw next shapes
+    drawNextShapes();
+
+    //draw score
+    drawScore();
 };
 
 const gameLoop = () => {
@@ -82,6 +132,9 @@ const init = () => {
         window.cancelAnimationFrame = window[vendors[x] + "CancelAnimationFrame" || vendors[x] + "CancelRequestAnimationFrame"];
     };
     
+    //fill nextShapes
+    nextShapes = [...new Array(shapesToSee)].map(() => Math.floor(Math.random() * SHAPES.length));
+
     //create board instance
     let boardPosX = canvasWidth / 2 - (NR_COLS/2) * BLOCK_SIZE_X;
     let boardPosY = canvasHeight / 2 - (NR_ROWS/2) * BLOCK_SIZE_Y;
@@ -89,11 +142,11 @@ const init = () => {
     board = new Board(boardPosX, boardPosY, BLOCK_SIZE_X, BLOCK_SIZE_Y, BORDER_SIZE, NR_ROWS, NR_COLS);
 
     //create player instance
-    const shape = SHAPES[Math.floor(Math.random() * SHAPES.length)];
     const playerPosX = canvasWidth / 2 - (4/2) * BLOCK_SIZE_X;
     const playerPosY = boardPosY;
 
-    player = new Player(shape, playerPosX, playerPosY, dx, dy, board);
+    player = new Player(SHAPES[nextShapes.shift()], playerPosX, playerPosY, dx, dy, board);
+    nextShapes.push(Math.floor(Math.random() * SHAPES.length));
 
     //set interval to update player position every 500ms
     const playerUpdateInterval = setInterval(() => {
@@ -106,10 +159,11 @@ const init = () => {
             const completedRows = board.checkForCompletedRows();
             //update board blocks
             board.updateBoardBlocks(completedRows);
+            board.updateScore(completedRows.length);
 
             //create new player instance
-            const shape = SHAPES[Math.floor(Math.random() * SHAPES.length)];
-            player = new Player(shape, playerPosX, playerPosY, dx, dy, board);
+            player = new Player(SHAPES[nextShapes.shift()], playerPosX, playerPosY, dx, dy, board);
+            nextShapes.push(Math.floor(Math.random() * SHAPES.length));
         }
 
     }, 300);
