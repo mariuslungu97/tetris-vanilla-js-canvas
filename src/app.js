@@ -1,6 +1,7 @@
 //Imports
 import "./scss/style.scss";
 
+import Game from './classes/Game';
 import Board from './classes/Board';
 import Player from './classes/Player';
 
@@ -20,23 +21,9 @@ let lastTime = (new Date()).getTime();
 let fps = 60;
 let interval = 1000 / fps;
 
-const BLOCK_SIZE_X = 25;
-const BLOCK_SIZE_Y = 25;
-const BORDER_SIZE = 2;
-
+let game;
 let board;
 let player;
-
-const NR_ROWS = 20;
-const NR_COLS = 10;
-
-const dx = BLOCK_SIZE_X;
-const dy = BLOCK_SIZE_Y;
-
-const SHAPES = ["-----X--XXX-----", "-X---X---X---X--", "-----XX--XX-----", "-----XX---XX----", "-----XX-XX------", "-----X---XXX----", "------X-XXX-----"];
-
-let nextShapes;
-let shapesToSee = 3;
 
 const drawNextShapes = () => {
 
@@ -52,11 +39,11 @@ const drawNextShapes = () => {
     //render shapes
     let shapePosX = textPosX;
     let shapePosY = textPosY + 25;
+    const nextShapes = game.getShapes();
 
     for (let i = 0; i < nextShapes.length; i++) {
 
-        const shape = SHAPES[nextShapes[i]];
-        const nextPlayer = new Player(shape, shapePosX, shapePosY, dx, dy, board);
+        const nextPlayer = new Player(game.SHAPES[nextShapes[i]], shapePosX, shapePosY, game.dx, game.dy, board);
         nextPlayer.draw(ctx);
 
         shapePosY += 165;
@@ -75,12 +62,11 @@ const drawScore = () => {
     ctx.fillText("SCORE:", textPosX, textPosY);
     
     ctx.textAlign = "center";
-    ctx.fillText(`${board.score}`, textPosX, textPosY + 50);
+    ctx.fillText(`${game.score}`, textPosX, textPosY + 50);
 
 };
 
 const draw = () => {
-
     //clear screen
     ctx.clearRect(0, 0, canvasWidth, canvasHeight);
 
@@ -132,21 +118,21 @@ const init = () => {
         window.cancelAnimationFrame = window[vendors[x] + "CancelAnimationFrame" || vendors[x] + "CancelRequestAnimationFrame"];
     };
     
-    //fill nextShapes
-    nextShapes = [...new Array(shapesToSee)].map(() => Math.floor(Math.random() * SHAPES.length));
+    //create game instance
+    //TODO: get game params dynamically, by letting the user set the difficulty of the game
+    game = new Game();
 
     //create board instance
-    let boardPosX = canvasWidth / 2 - (NR_COLS/2) * BLOCK_SIZE_X;
-    let boardPosY = canvasHeight / 2 - (NR_ROWS/2) * BLOCK_SIZE_Y;
+    let boardPosX = canvasWidth / 2 - (game.NR_COLS/2) * game.BLOCK_SIZE_X;
+    let boardPosY = canvasHeight / 2 - (game.NR_ROWS/2) * game.BLOCK_SIZE_Y;
    
-    board = new Board(boardPosX, boardPosY, BLOCK_SIZE_X, BLOCK_SIZE_Y, BORDER_SIZE, NR_ROWS, NR_COLS);
+    board = new Board(boardPosX, boardPosY, game.BLOCK_SIZE_X, game.BLOCK_SIZE_Y, game.BORDER_SIZE, game.NR_ROWS, game.NR_COLS);
 
     //create player instance
-    const playerPosX = canvasWidth / 2 - (4/2) * BLOCK_SIZE_X;
+    const playerPosX = canvasWidth / 2 - (4/2) * game.BLOCK_SIZE_X;
     const playerPosY = boardPosY;
 
-    player = new Player(SHAPES[nextShapes.shift()], playerPosX, playerPosY, dx, dy, board);
-    nextShapes.push(Math.floor(Math.random() * SHAPES.length));
+    player = new Player(game.drawShape(), playerPosX, playerPosY, game.dx, game.dy, board);
 
     //set interval to update player position every 500ms
     const playerUpdateInterval = setInterval(() => {
@@ -154,17 +140,34 @@ const init = () => {
         const hasPlayerUpdated = player.update("none");
 
         if (!hasPlayerUpdated) {
+            
             board.addTetroToCollided(player);
+            
             //check for completed rows
             const completedRows = board.checkForCompletedRows();
+            
             //update board blocks
             board.updateBoardBlocks(completedRows);
-            board.updateScore(completedRows.length);
+            
+            //update score  
+            game.updateScore(completedRows.length);
 
             //create new player instance
-            player = new Player(SHAPES[nextShapes.shift()], playerPosX, playerPosY, dx, dy, board);
-            nextShapes.push(Math.floor(Math.random() * SHAPES.length));
-        }
+            player = new Player(game.drawShape(), playerPosX, playerPosY, game.dx, game.dy, board);
+            
+            //check if the player is colliding without any positional update => player has lost
+            const [updatePosX, updatePosY] = board.checkForCollisions(player.shape, player.posX, player.posY);
+            const isFirstRowFilled = board.isFirstRowFilled();
+
+            if (!updatePosX && !updatePosY && isFirstRowFilled) {
+                //player has lost
+                if (!alert("You have lost! Your final score is: " + game.score)) {
+                    game = new Game();
+                    board = new Board(boardPosX, boardPosY, game.BLOCK_SIZE_X, game.BLOCK_SIZE_Y, game.BORDER_SIZE, game.NR_ROWS, game.NR_COLS);
+                    player = new Player(game.drawShape(), playerPosX, playerPosY, game.dx, game.dy, board);
+                }
+            };
+        };
 
     }, 300);
 

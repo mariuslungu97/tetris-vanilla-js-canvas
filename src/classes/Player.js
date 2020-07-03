@@ -37,7 +37,7 @@ class Player {
             }
         };
     }
-
+    
     rotate() {
 
         let angle = 90;

@@ -16,9 +16,6 @@ class Board {
 
         this.boardBlocks = [];
 
-        this.score = 0;
-        this.scoredTetris = false;
-
         for (let i = 0; i < m; i++) {
             for(let j = 0; j < n; j++) {
                 const block = {
@@ -160,15 +157,16 @@ class Board {
         return completedRows;
     };
 
-    updateScore(lineClears) {
+    isFirstRowFilled() {
 
-        const nrTetris = Math.floor(lineClears / 4);
-        const rest = lineClears % 4;
+        let isFilled = false;
+        const firstRow = this.boardBlocks.slice(0, this.n);
+        
+        firstRow.forEach(block => {
+            if (block.filled === true) return isFilled = true;
+        });
 
-        this.score += this.scoredTetris ? 1200 * nrTetris : 800 * nrTetris;
-        this.score += rest * 100;
-        this.scoredTetris = nrTetris > 0 ? true : false;
-
+        return isFilled;
     };
 
     addTetroToCollided = (tetro) => {
