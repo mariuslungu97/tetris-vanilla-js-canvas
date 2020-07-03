@@ -25,6 +25,13 @@ let game;
 let board;
 let player;
 
+let boardPosX, boardPosY;
+let playerPosX, playerPosY;
+
+let updatePlayerInterval = 400; // in ms
+let lastUpdateTime = (new Date()).getTime();
+let currentUpdateTime = 0;
+
 const drawNextShapes = () => {
 
     //render text
@@ -98,6 +105,47 @@ const gameLoop = () => {
 
         draw();
 
+        //update player position
+        currentUpdateTime = (new Date()).getTime();
+
+        if (currentUpdateTime - lastUpdateTime > updatePlayerInterval) {
+            
+            //update position
+            const hasPlayerUpdated = player.update("none");
+
+            if (!hasPlayerUpdated) {
+                 
+                board.addTetroToCollided(player);
+                
+                //check for completed rows
+                const completedRows = board.checkForCompletedRows();
+                
+                //update board blocks
+                board.updateBoardBlocks(completedRows);
+                
+                //update score  
+                game.updateScore(completedRows.length);
+
+                //create new player instance
+                player = new Player(game.drawShape(), playerPosX, playerPosY, game.dx, game.dy, board);
+                
+                //check if the player is colliding without any positional update => player has lost
+                const [updatePosX, updatePosY] = board.checkForCollisions(player.shape, player.posX, player.posY);
+                const isFirstRowFilled = board.isFirstRowFilled();
+
+                if (!updatePosX && !updatePosY && isFirstRowFilled) {
+                    //player has lost
+                    if (!alert("You have lost! Your final score is: " + game.score)) {
+                        game = new Game();
+                        board = new Board(boardPosX, boardPosY, game.BLOCK_SIZE_X, game.BLOCK_SIZE_Y, game.BORDER_SIZE, game.NR_ROWS, game.NR_COLS);
+                        player = new Player(game.drawShape(), playerPosX, playerPosY, game.dx, game.dy, board);
+                    }
+                };
+            };
+
+            lastUpdateTime = currentUpdateTime;
+        };
+
         lastTime = currentTime - (delta % interval);
 
     }
@@ -123,61 +171,36 @@ const init = () => {
     game = new Game();
 
     //create board instance
-    let boardPosX = canvasWidth / 2 - (game.NR_COLS/2) * game.BLOCK_SIZE_X;
-    let boardPosY = canvasHeight / 2 - (game.NR_ROWS/2) * game.BLOCK_SIZE_Y;
+    boardPosX = canvasWidth / 2 - (game.NR_COLS/2) * game.BLOCK_SIZE_X;
+    boardPosY = canvasHeight / 2 - (game.NR_ROWS/2) * game.BLOCK_SIZE_Y;
    
     board = new Board(boardPosX, boardPosY, game.BLOCK_SIZE_X, game.BLOCK_SIZE_Y, game.BORDER_SIZE, game.NR_ROWS, game.NR_COLS);
 
     //create player instance
-    const playerPosX = canvasWidth / 2 - (4/2) * game.BLOCK_SIZE_X;
-    const playerPosY = boardPosY;
+    playerPosX = canvasWidth / 2 - (4/2) * game.BLOCK_SIZE_X;
+    playerPosY = boardPosY;
 
     player = new Player(game.drawShape(), playerPosX, playerPosY, game.dx, game.dy, board);
 
-    //set interval to update player position every 500ms
-    const playerUpdateInterval = setInterval(() => {
-        
-        const hasPlayerUpdated = player.update("none");
-
-        if (!hasPlayerUpdated) {
-            
-            board.addTetroToCollided(player);
-            
-            //check for completed rows
-            const completedRows = board.checkForCompletedRows();
-            
-            //update board blocks
-            board.updateBoardBlocks(completedRows);
-            
-            //update score  
-            game.updateScore(completedRows.length);
-
-            //create new player instance
-            player = new Player(game.drawShape(), playerPosX, playerPosY, game.dx, game.dy, board);
-            
-            //check if the player is colliding without any positional update => player has lost
-            const [updatePosX, updatePosY] = board.checkForCollisions(player.shape, player.posX, player.posY);
-            const isFirstRowFilled = board.isFirstRowFilled();
-
-            if (!updatePosX && !updatePosY && isFirstRowFilled) {
-                //player has lost
-                if (!alert("You have lost! Your final score is: " + game.score)) {
-                    game = new Game();
-                    board = new Board(boardPosX, boardPosY, game.BLOCK_SIZE_X, game.BLOCK_SIZE_Y, game.BORDER_SIZE, game.NR_ROWS, game.NR_COLS);
-                    player = new Player(game.drawShape(), playerPosX, playerPosY, game.dx, game.dy, board);
-                }
-            };
-        };
-
-    }, 300);
+    let increasedSpeedInterval;
 
     //set event listeners
     window.addEventListener("keydown", (e) => {
-        
         if (e.keyCode === 37) player.update("left");
         else if (e.keyCode === 39) player.update("right");
         else if (e.keyCode === 38) player.rotate();
+        else if (e.keyCode === 40) {
+            updatePlayerInterval = 25;
+            increasedSpeedInterval = setInterval(() => game.updateScoreAtIncreasedSpeed(), 50);
+        };
 
+    });
+
+    window.addEventListener("keyup", (e) => {
+        if (e.keyCode === 40) {
+            updatePlayerInterval = 400;
+            clearInterval(increasedSpeedInterval);
+        };
     });
 
     //game loop

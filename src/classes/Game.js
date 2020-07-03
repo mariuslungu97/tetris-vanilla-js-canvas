@@ -41,6 +41,8 @@ class Game {
     };
 
     getShapes = () => this.nextShapes.slice();
+
+    updateScoreAtIncreasedSpeed = () => this.score += 3;
 };
 
 export default Game;
