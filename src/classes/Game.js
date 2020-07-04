@@ -3,14 +3,13 @@ class Game {
         
         this.BLOCK_SIZE_X = 25;
         this.BLOCK_SIZE_Y = 25;
-        this.BORDER_SIZE = 2;
+        this.BORDER_SIZE = 1.15;
 
         this.NR_ROWS = 20;
         this.NR_COLS = 10;
 
         this.SHAPES =  ["-----X--XXX-----", "-X---X---X---X--", "-----XX--XX-----", "-----XX---XX----", "-----XX-XX------", "-----X---XXX----", "------X-XXX-----"];
-        //TODO: fill array with shapes colors
-        this.SHAPES_COLORS = [];
+        this.SHAPES_COLORS = ["#65019C", "#04EFEF", "#EFF004", "#F00000", "#00F100", "#0175f0", "#EEA000"];
 
         this.dx = this.BLOCK_SIZE_X;
         this.dy = this.BLOCK_SIZE_Y;
@@ -52,7 +51,12 @@ class Game {
         return this.SHAPES[shape];
     };
 
-    getShapes = () => this.nextShapes.slice();
+    getColorByShape(shape) {
+        const shapeIndex = this.SHAPES.findIndex(el => el === shape);
+        return this.SHAPES_COLORS[shapeIndex];
+    };
+
+    getShapes = () => this.nextShapes.map(shapeIndex => this.SHAPES[shapeIndex]);
 
     updateScoreAtIncreasedSpeed = () => this.score += 3;
 };

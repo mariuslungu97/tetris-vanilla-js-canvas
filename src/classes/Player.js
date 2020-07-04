@@ -1,5 +1,5 @@
 class Player {
-    constructor(shape, posX, posY, dx, dy, board) {
+    constructor(shape, color, borderColor, posX, posY, dx, dy, board) {
         /*
             A shape is defined as a string of this form:
             ----
@@ -10,6 +10,9 @@ class Player {
             multi-dimensional array, but a 1D array, for simplification purposes
         */
         this.shape = shape;
+        this.color = color;
+        this.borderColor = borderColor;
+
         this.posX = posX;
         this.posY = posY;
         
@@ -29,10 +32,7 @@ class Player {
                 //get block position
                 const [posX, posY] = this.board.getBlockPosition(i, this.posX, this.posY);
 
-                const borderStyle = "rgba(0,44,133,1)";
-                const blockStyle = "#023eb5";
-
-                this.board.drawBlock(ctx, borderStyle, blockStyle, posX, posY);
+                this.board.drawBlock(ctx, this.borderColor, this.color, posX, posY, true);
 
             }
         };

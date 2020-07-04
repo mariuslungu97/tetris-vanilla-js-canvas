@@ -21,7 +21,9 @@ class Board {
                 const block = {
                     posX : this.posX + j * this.blockSizeX,
                     posY : this.posY + i * this.blockSizeY,
-                    filled : false
+                    filled : false,
+                    color : "",
+                    borderColor : ""
                 };
                 this.boardBlocks.push(block);
             };
@@ -33,7 +35,7 @@ class Board {
             if (tetro.shape[i] === "X") {
 
                 const blockIndex = this.getBlockIndex(i, tetro.posX, tetro.posY);
-                this.markBlockAsFilled(blockIndex);
+                this.markBlockAsFilled(blockIndex, tetro.color, tetro.borderColor);
 
             };
         };
@@ -49,9 +51,13 @@ class Board {
         return row  * this.n + col;
     };
 
-    markBlockAsFilled(index) {
+    markBlockAsFilled(index, color, borderColor) {
+        
         const block = {...this.boardBlocks[index]};
+        
         block.filled = true;
+        block.color = color;
+        block.borderColor = borderColor;
 
         this.boardBlocks[index] = block;
     };
@@ -61,29 +67,22 @@ class Board {
         const emptyBorderStyle = "rgba(184,184,184,1)";
         const emptyBlockStyle = "#6d6d6e";
 
-        const collidedBorderStyle = "rgba(0,44,133,1)";
-        const collidedBlockStyle = "#023eb5";
-
         //render empty blocks
         for(let i = 0; i < this.boardBlocks.length; i++) {
             
-            let {posX, posY} = this.boardBlocks[i];
-            const isFilled = this.boardBlocks[i].filled;
+            let {posX, posY, filled} = this.boardBlocks[i];
             
-            if (!isFilled) {
-                this.drawBlock(ctx, emptyBorderStyle, emptyBlockStyle, posX, posY);
-            };
+            this.drawBlock(ctx, emptyBorderStyle, emptyBlockStyle, posX, posY, false);
 
         };
 
         //render filled blocks
         for(let i = 0; i < this.boardBlocks.length; i++) {
             
-            let {posX, posY} = this.boardBlocks[i];
-            const isFilled = this.boardBlocks[i].filled;
-            
-            if (isFilled) {
-                this.drawBlock(ctx, collidedBorderStyle, collidedBlockStyle, posX, posY);
+            let {posX, posY, filled, color, borderColor} = this.boardBlocks[i];
+     
+            if (filled) {
+                this.drawBlock(ctx, borderColor, color, posX, posY, filled);
             };
 
         };
@@ -124,6 +123,8 @@ class Board {
             for (let j = 0; j < completedRowIndex; j++) {
 
                 newBoardBlocks[(row + 1) * this.n + col].filled = this.boardBlocks[row * this.n + col].filled;
+                newBoardBlocks[(row + 1) * this.n + col].color = this.boardBlocks[row * this.n + col].color;
+                newBoardBlocks[(row + 1) * this.n + col].borderColor = this.boardBlocks[row * this.n + col].borderColor;
 
                 //update row and col
                 if ((j + 1) % this.n === 0) {
@@ -169,10 +170,6 @@ class Board {
         return isFilled;
     };
 
-    addTetroToCollided = (tetro) => {
-        this.markTetroAsFilled(tetro);
-    };
-
     checkForCollisions(shape, posX, posY) {
 
         let updateDirectionX = true;
@@ -204,16 +201,26 @@ class Board {
         return [updateDirectionX, updateDirectionY];
     };
 
-    drawBlock(ctx, borderStyle, blockStyle, posX, posY) {
+    drawBlock(ctx, borderStyle, blockStyle, posX, posY, filled) {
 
-         //draw border
-         ctx.fillStyle = borderStyle;
-         ctx.fillRect(posX, posY, this.blockSizeX + this.borderSize, this.blockSizeY + this.borderSize);
-         
-         //draw block
-         ctx.fillStyle = blockStyle;
-         ctx.fillRect(posX+this.borderSize, posY+this.borderSize, this.blockSizeX - this.borderSize, this.blockSizeY - this.borderSize);
-         
+        if (!filled) {
+            //draw border
+            ctx.fillStyle = borderStyle;
+            ctx.fillRect(posX, posY, this.blockSizeX + this.borderSize, this.blockSizeY + this.borderSize);
+
+            //draw block
+            ctx.fillStyle = blockStyle;
+            ctx.fillRect(posX + this.borderSize, posY + this.borderSize, this.blockSizeX - this.borderSize, this.blockSizeY - this.borderSize);
+        } else {
+             //draw border
+            ctx.fillStyle = borderStyle;
+            ctx.fillRect(posX + this.borderSize, posY + this.borderSize, this.blockSizeX, this.blockSizeY);
+
+            //draw block
+            ctx.fillStyle = blockStyle;
+            ctx.fillRect(posX + this.borderSize * 2, posY + this.borderSize * 2, this.blockSizeX - this.borderSize * 2, this.blockSizeY - this.borderSize * 2);
+        }
+      
     };
 
     getBlockPosition(i, posX, posY) {

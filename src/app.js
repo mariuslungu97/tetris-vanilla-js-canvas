@@ -39,6 +39,26 @@ let difficultyLevel;
 
 let animationReq;
 
+const shadeColor = (color, percent) => {
+    var R = parseInt(color.substring(1,3),16);
+    var G = parseInt(color.substring(3,5),16);
+    var B = parseInt(color.substring(5,7),16);
+
+    R = parseInt(R * (100 + percent) / 100);
+    G = parseInt(G * (100 + percent) / 100);
+    B = parseInt(B * (100 + percent) / 100);
+
+    R = (R<255) ? R:255;  
+    G = (G<255) ? G:255;  
+    B = (B<255) ? B:255;  
+
+    var RR = ((R.toString(16).length==1)?"0"+R.toString(16):R.toString(16));
+    var GG = ((G.toString(16).length==1)?"0"+G.toString(16):G.toString(16));
+    var BB = ((B.toString(16).length==1)?"0"+B.toString(16):B.toString(16));
+
+    return "#"+RR+GG+BB;
+};
+
 const drawNextShapes = () => {
     
     //render text
@@ -57,7 +77,11 @@ const drawNextShapes = () => {
 
     for (let i = 0; i < nextShapes.length; i++) {
 
-        const nextPlayer = new Player(game.SHAPES[nextShapes[i]], shapePosX, shapePosY, game.dx, game.dy, board);
+        const shape = nextShapes[i];
+        const color = game.getColorByShape(shape);
+        const borderColor = shadeColor(color, -35);
+        
+        const nextPlayer = new Player(shape, color, borderColor, shapePosX, shapePosY, game.dx, game.dy, board);
         nextPlayer.draw(ctx);
 
         shapePosY += 165;
@@ -143,8 +167,8 @@ const gameLoop = () => {
             const hasPlayerUpdated = player.update("none");
 
             if (!hasPlayerUpdated) {
-                 
-                board.addTetroToCollided(player);
+                
+                board.markTetroAsFilled(player);
                 
                 //check for completed rows
                 const completedRows = board.checkForCompletedRows();
@@ -156,7 +180,11 @@ const gameLoop = () => {
                 game.updateScore(completedRows.length);
 
                 //create new player instance
-                player = new Player(game.drawShape(), playerPosX, playerPosY, game.dx, game.dy, board);
+                const shape = game.drawShape();
+                const color = game.getColorByShape(shape);
+                const borderColor = shadeColor(color, -35);
+
+                player = new Player(shape, color, borderColor, playerPosX, playerPosY, game.dx, game.dy, board);
                 
                 //check if the player is colliding without any positional update => player has lost
                 const [updatePosX, updatePosY] = board.checkForCollisions(player.shape, player.posX, player.posY);
@@ -167,7 +195,12 @@ const gameLoop = () => {
                     if (!alert("You have lost! Your final score is: " + game.score)) {
                         game = new Game(difficultyLevel);
                         board = new Board(boardPosX, boardPosY, game.BLOCK_SIZE_X, game.BLOCK_SIZE_Y, game.BORDER_SIZE, game.NR_ROWS, game.NR_COLS);
-                        player = new Player(game.drawShape(), playerPosX, playerPosY, game.dx, game.dy, board);
+                        
+                        const shape = game.drawShape();
+                        const color = game.getColorByShape(shape);
+                        const borderColor = shadeColor(color, -35);
+
+                        player = new Player(shape, color, borderColor, playerPosX, playerPosY, game.dx, game.dy, board);
                     }
                 };
             };
@@ -197,7 +230,11 @@ const init = () => {
     playerPosX = canvasWidth / 2 - (4/2) * game.BLOCK_SIZE_X;
     playerPosY = boardPosY;
 
-    player = new Player(game.drawShape(), playerPosX, playerPosY, game.dx, game.dy, board);
+    const shape = game.drawShape();
+    const color = game.getColorByShape(shape);
+    const borderColor = shadeColor(color, -35);
+
+    player = new Player(shape, color, borderColor, playerPosX, playerPosY, game.dx, game.dy, board);
 
     let increasedSpeedInterval;
     
@@ -209,7 +246,7 @@ const init = () => {
             else if (e.keyCode === 38) player.rotate();
             else if (e.keyCode === 40) {
                 updatePlayerInterval = 25;
-                increasedSpeedInterval = setInterval(() => game.updateScoreAtIncreasedSpeed(), 50);
+                if (!increasedSpeedInterval) increasedSpeedInterval = setInterval(game.updateScoreAtIncreasedSpeed, 50);
             };
         };
     
@@ -217,6 +254,7 @@ const init = () => {
             if (e.keyCode === 40) {
                 updatePlayerInterval = game.updatePlayerInterval;
                 clearInterval(increasedSpeedInterval);
+                increasedSpeedInterval = 0;
             };
         }
     };
