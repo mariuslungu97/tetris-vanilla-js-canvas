@@ -12,14 +12,26 @@ class Game {
         //TODO: fill array with shapes colors
         this.SHAPES_COLORS = [];
 
-        this.dx = this.BLOCK_SIZE_X * difficulty;
-        this.dy = this.BLOCK_SIZE_Y * difficulty;
+        this.dx = this.BLOCK_SIZE_X;
+        this.dy = this.BLOCK_SIZE_Y;
 
         this.shapesToSee = (4 - difficulty);
         this.nextShapes =  [...new Array(this.shapesToSee)].map(() => Math.floor(Math.random() * this.SHAPES.length));
         
         this.score = 0;
         this.scoredTetris = false;
+
+        switch(difficulty) {
+            case 1:
+                this.updatePlayerInterval = 400;
+                break;
+            case 2:
+                this.updatePlayerInterval = 300;
+                break;
+            case 3:
+                this.updatePlayerInterval = 200;
+                break;
+        };
     };
 
     updateScore(lineClears) {

@@ -1,0 +1,57 @@
+.navbar {
+    width : 100%;
+    height : 100%;  
+    text-align: center;
+    background : $topbar-color;
+    color : $topbar-text-color;
+    font-size: $topbar-font-size;
+    padding : .7rem 0;
+    text-transform: uppercase;
+
+    &__container {
+        width : 92.5%;
+        margin : 0 auto;
+        display : flex;
+        flex-direction: row;
+        justify-content: space-around;
+        align-items: center;
+    }
+
+    &__difficulty {
+
+        &--input {
+            margin-left : 1rem;
+            background : transparent;
+            border : none;
+            font-size : inherit;
+            color : inherit;
+            text-align : center;
+            border : 1px solid $topbar-text-color;
+            border-radius : 2.5rem;
+            outline : none;
+        }
+    }
+}
+
+.btn {
+    border : none;
+    font-size : $btn-font-size;
+    font-family: inherit;
+    color : inherit;
+    padding : .75rem 1.5rem;
+    cursor : pointer;
+    text-transform: uppercase;
+    background : none;
+    transition: all .15s ease-in-out;
+    outline : none;
+
+    &:hover {
+        color : $btn-color;
+        transform : translateY(-2px);
+    }
+
+    &:active {
+        transform : translateY(3px);
+    }
+}
+

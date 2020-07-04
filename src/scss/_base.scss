@@ -1,0 +1,30 @@
+
+
+
+$topbar-color : #343a40;
+$topbar-font-size : 2.5rem;
+$topbar-text-color : #f8f9fa;
+
+$btn-font-size : 3rem;
+$btn-color : #00731d;
+
+* {
+    margin : 0;
+    padding : 0;
+    box-sizing: border-box;
+}
+
+html {
+    font-size: 62.5%;
+    width : 100%;
+    height : 100vh;
+}
+
+body {
+    width : 100%;
+    height : 100%;
+    font-family: 'Righteous', cursive;
+    font-size: 2rem;
+    line-height: 1.5;
+    overflow : hidden;
+}
